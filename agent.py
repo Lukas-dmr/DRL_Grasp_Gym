@@ -1,15 +1,14 @@
 import os
+import sys
 import yaml
+import argparse
 import gymnasium
 import grasp_gym
 import numpy as np
-import torch as th
 from stable_baselines3 import PPO
-#from networks.test_policy import CustomPolicy
-from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import CheckpointCallback
-from grasp_gym.environments.models.sim_env import SimEnv
 
 def read_hyperparameters_from_yaml(file_path=os.getcwd() + "/hyperparameters/ppo.yaml"):
     with open(file_path, 'r') as file:
@@ -45,8 +44,7 @@ class CustomCallback(BaseCallback):
 
 def test_env():
 
-    from grasp_gym.environments.gym_env import RobotGraspGym
-    env = RobotGraspGym(render_gui=True)
+    env = gymnasium.make('GraspEnv-s4', render_gui=True)
     env.reset()
 
     tmp = False
@@ -80,20 +78,10 @@ def test_env():
 
         ts += 1
 
-
-
-
-
-
-
-       
-        
-        
-
-def run(path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
+def run(stage_nr=4, path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
 
     # Create and wrap the custom Gym environment
-    env = gymnasium.make('GraspEnv-v0', render_gui=True)
+    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=True)
     env = DummyVecEnv([lambda: env])
 
     model = PPO.load(path)
@@ -106,16 +94,14 @@ def run(path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
         obs, rewards, done, info = env.step(action)
 
         
-
-
-def train(load_agent=False, agent_name=""):
+def train(stage_nr=4, load_agent=False, agent_name=""):
 
     # Create the directory if it does not exist
     checkpoint_dir = os.getcwd() + "/checkpoints"
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Create and wrap the custom Gym environment
-    env = gymnasium.make('GraspEnv-v0')
+    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=False)
     env = DummyVecEnv([lambda: env])
 
     hyperparameters = read_hyperparameters_from_yaml()
@@ -144,10 +130,25 @@ def train(load_agent=False, agent_name=""):
     # Close the environment
     env.close()
 
-#train(load_agent=True, agent_name="second_stage_finger_contact_fixed_object.zip")
-run(os.getcwd() + "/checkpoints/rl_model_350000_steps.zip")
-#test_env()
+def main():
 
-#env = SimEnv(render_gui=True)
+    parser = argparse.ArgumentParser(description='train, run or test agent')
+    parser.add_argument('--action', choices=['train', 'run', 'test'], help='Type of action: train, run, test', default='run')
+    parser.add_argument('--stage', type=int, choices=[1, 2, 3, 4], default=4, help='Stage number (1, 2, 3, 4)')
+    parser.add_argument('--checkpoint', default='rl_model_350000_steps.zip', help='Checkpoint name')
+
+    args = parser.parse_args()
+
+    if args.action == 'train':
+        train(stage_nr=args.stage)
+    elif args.action == 'run':
+        run(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'checkpoints/'+str(args.checkpoint)))
+    elif args.action == 'test':
+        test_env()
+    else:
+        print("Invalid command. Please choose 'train', 'run', or 'test'.")
+
+if __name__ == "__main__":
+    main()
 
 

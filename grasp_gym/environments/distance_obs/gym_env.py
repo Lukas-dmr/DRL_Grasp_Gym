@@ -18,6 +18,7 @@ class RobotGraspGym(gym.Env):
         self.cum_reward = 0
 
         self.success_threshold = 0.025
+        self.grasp_success = 0
 
         self.action_space, self.observation_space = self.define_spaces()
 
@@ -40,6 +41,7 @@ class RobotGraspGym(gym.Env):
         '''Reset the environment and return the initial observation'''
         self.episode_ts = 0
         self.cum_reward = 0
+        self.grasp_success = 0
         self.reached_target = False
         self.sim_env.reset()
         observations = self.get_observation()
@@ -61,14 +63,14 @@ class RobotGraspGym(gym.Env):
         self.sim_env.run_simulation(action)
 
         observation = self.get_observation()
-        reward = self.reward(action)
+        reward = self.reward()
         done = self.terminate_episode()
 
         self.episode_ts += 1
     
         return observation, reward, done, done, {}
     
-    def reward(self, action):   
+    def reward(self):   
         
         current_distance = self.sim_env.get_distance()
 
@@ -82,7 +84,7 @@ class RobotGraspGym(gym.Env):
             reward = 500
             
         return reward
-        
+    
     def terminate_episode(self):
          if self.episode_ts >= self.max_ts:
              return True
@@ -93,23 +95,9 @@ class RobotGraspGym(gym.Env):
          return False
    
     
-    def check_reach_success(self):
-
-        distance = self.sim_env.get_distance()
-
-        success = True
-
-        x_dist = abs(distance[0])
-        y_dist = abs(distance[1])
-        z_dist = abs(distance[2])
-
-        if x_dist > self.success_threshold or y_dist > self.success_threshold:
-            success = False
-
-        if z_dist > 0.06:
-            success = False
-
-        return success
+ 
+    
+    
     
 
         

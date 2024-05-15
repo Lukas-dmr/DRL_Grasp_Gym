@@ -9,7 +9,6 @@ class SimEnv():
     def __init__(self, render_gui) -> None:
 
         self.obj = -1
-        self.grasp_success = 0
         
         if render_gui: p.connect(p.GUI)
         else: p.connect(p.DIRECT)
@@ -52,7 +51,6 @@ class SimEnv():
     def reset(self):
         self.robot.reset_robot()
         self.place_object()
-        self.grasp_success = 0
         for _ in range(50):
             p.stepSimulation()
             time.sleep(1./240.)
@@ -63,9 +61,6 @@ class SimEnv():
         for _ in range(10):
             p.stepSimulation()
             time.sleep(1./240.)
-
-        if action[3] > 0:
-            self.check_grasp_success()
 
     def get_object_position(self):
         pos, _ = p.getBasePositionAndOrientation(self.obj)
@@ -83,43 +78,6 @@ class SimEnv():
 
         return distance
     
-    def check_grasp_success(self):
-        '''Check if the object is in the gripper'''
-        
-        # Check position of finger joints
-        finger_joint_states = [p.getJointState(self.robot.gripper, i)[0] for i in [4, 5]]
-
-        if finger_joint_states[0] < 0.01 or finger_joint_states[1] < 0.01:
-            return
-        else:
-            contactPoints = p.getContactPoints(bodyA=self.robot.gripper, bodyB=self.obj)
-    
-            if len(contactPoints) == 0:
-                return
-            else:
-                contact_finger1 = False
-                contact_finger2 = False
-
-                for cp in contactPoints:
-                    if cp[3] == 4 and cp[4] == -1:
-                      contact_finger1 = True
-                    if cp[3] == 5 and cp[4] == -1:
-                       contact_finger2 = True
-
-                if contact_finger1 and contact_finger2: 
-
-                    # lift object to validate the grasp
-                    self.robot.lift_object()
-                    
-                    obj_pos = self.get_object_position()
-                
-                    if obj_pos[2] > 0.055:
-                        self.grasp_success = 1
-                        return
-
-    def get_grasp_success(self):
-        return self.grasp_success
-
     def check_obj_pos(self):
 
         obj_pos = self.get_object_position()
