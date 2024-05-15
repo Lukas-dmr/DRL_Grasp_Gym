@@ -69,12 +69,12 @@ def test_env():
 
         if abs(action[0]) > 0.01 or abs(action[1]) > 0.01:
            observation, reward, done, _, _ = env.step([action[0], action[1], 0, 0])
-        elif abs(action[2]) > 0.0005:
+        elif abs(action[2]) > 0.001:
             observation, reward, done, _, _ = env.step([0, 0, action[2], 0])
         else: 
            observation, reward, done, _, _ =  env.step([0, 0, 0, 1])
 
-        if done or ts > 100:
+        if done or ts > 200:
             env.reset()
             ts = 0
 
@@ -144,8 +144,8 @@ def train(load_agent=False, agent_name=""):
     # Close the environment
     env.close()
 
-#train(load_agent=True, agent_name="first_stage_distance_and_closed_gripper.zip")
-run(os.getcwd() + "/checkpoints/rl_model_60000_steps")
+#train(load_agent=True, agent_name="second_stage_finger_contact_fixed_object.zip")
+run(os.getcwd() + "/checkpoints/rl_model_350000_steps.zip")
 #test_env()
 
 #env = SimEnv(render_gui=True)

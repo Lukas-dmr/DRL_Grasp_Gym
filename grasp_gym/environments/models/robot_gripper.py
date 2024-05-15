@@ -31,13 +31,13 @@ class Robot():
     Reset the gripper to its initial position
     """
 
-    #p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
-    #p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
     
-    #p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.2)
+    p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.2)
     p.setJointMotorControl2(self.gripper, 3, p.POSITION_CONTROL, targetPosition=0)
     
-    p.resetBasePositionAndOrientation(self.gripper, [0, 0, 0.2], [ 0, 0, 0, 1 ])
+    #p.resetBasePositionAndOrientation(self.gripper, [0, 0, 0.2], [ 0, 0, 0, 1 ])
     p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     self.grasp_success = 0
@@ -133,7 +133,14 @@ class Robot():
     """
     return self.gripper_status
   
-
+  def lift_object(self):
+    """
+    Lift the object to validate the grasp
+    """
+    p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.15, maxVelocity=0.1)
+    for _ in range(50):
+        p.stepSimulation()
+        time.sleep(1./240.)
 
         
     

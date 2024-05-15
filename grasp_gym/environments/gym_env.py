@@ -88,6 +88,8 @@ class RobotGraspGym(gym.Env):
              return True
          if self.sim_env.get_grasp_success() == 1:
              return True
+         if not self.sim_env.check_obj_pos():
+             return True
          return False
    
     

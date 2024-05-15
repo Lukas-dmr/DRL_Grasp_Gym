@@ -26,7 +26,7 @@ class SimEnv():
         if self.obj != -1:
             p.removeBody(self.obj)
         self.obj = (self.obj) = p.loadURDF(self.model_path + "/grasping_objects/cube_small.urdf")
-        p.changeDynamics(self.obj, -1, mass=0)
+        #p.changeDynamics(self.obj, -1, mass=0)
 
 
         self.robot = Robot(self.obj)
@@ -46,7 +46,7 @@ class SimEnv():
 
         
         p.resetBasePositionAndOrientation(self.obj, [rand_pos[0], rand_pos[1], 0.05], [0, 0, 0, 1])
-        p.changeDynamics(self.obj, -1, mass=0)
+        #p.changeDynamics(self.obj, -1, mass=0)
 
         
     def reset(self):
@@ -85,7 +85,7 @@ class SimEnv():
     
     def check_grasp_success(self):
         '''Check if the object is in the gripper'''
-
+        
         # Check position of finger joints
         finger_joint_states = [p.getJointState(self.robot.gripper, i)[0] for i in [4, 5]]
 
@@ -106,14 +106,28 @@ class SimEnv():
                     if cp[3] == 5 and cp[4] == -1:
                        contact_finger2 = True
 
-                if contact_finger1 and contact_finger2:          
-                    self.grasp_success = 1
-                    return
+                if contact_finger1 and contact_finger2: 
+
+                    # lift object to validate the grasp
+                    self.robot.lift_object()
+                    
+                    obj_pos = self.get_object_position()
+                
+                    if obj_pos[2] > 0.055:
+                        self.grasp_success = 1
+                        return
 
     def get_grasp_success(self):
         return self.grasp_success
 
- 
+    def check_obj_pos(self):
+
+        obj_pos = self.get_object_position()
+
+        if abs(obj_pos[0]) > 0.45 or abs(obj_pos[1]) > 0.45:
+            return False
+        
+        return True
 
 
 
