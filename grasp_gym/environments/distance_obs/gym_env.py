@@ -14,8 +14,6 @@ class RobotGraspGym(gym.Env):
 
         self.max_ts = 1000
         self.episode_ts = 0
-        self.reached_target = False
-        self.cum_reward = 0
 
         self.success_threshold = 0.025
         self.grasp_success = 0
@@ -40,9 +38,7 @@ class RobotGraspGym(gym.Env):
     def reset(self, **kwargs):
         '''Reset the environment and return the initial observation'''
         self.episode_ts = 0
-        self.cum_reward = 0
         self.grasp_success = 0
-        self.reached_target = False
         self.sim_env.reset()
         observations = self.get_observation()
         return observations, {}  # Assuming reset_infos are not needed
@@ -59,7 +55,7 @@ class RobotGraspGym(gym.Env):
         return observation
 
     def step(self, action):
-
+        
         self.sim_env.run_simulation(action)
 
         observation = self.get_observation()
@@ -70,30 +66,6 @@ class RobotGraspGym(gym.Env):
     
         return observation, reward, done, done, {}
     
-    def reward(self):   
-        
-        current_distance = self.sim_env.get_distance()
-
-        grasp_penalty = 1
-        if self.sim_env.robot.get_gripper_status() == 1:
-            grasp_penalty = 2
-
-        reward = -np.linalg.norm(current_distance)*grasp_penalty
-        
-        if self.sim_env.get_grasp_success() == 1:
-            reward = 500
-            
-        return reward
-    
-    def terminate_episode(self):
-         if self.episode_ts >= self.max_ts:
-             return True
-         if self.sim_env.get_grasp_success() == 1:
-             return True
-         if not self.sim_env.check_obj_pos():
-             return True
-         return False
-   
     
  
     

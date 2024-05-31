@@ -6,9 +6,10 @@ from grasp_gym.environments.models.robot_gripper import Robot
 
 class SimEnv():
 
-    def __init__(self, render_gui) -> None:
+    def __init__(self, render_gui, fix_object=True) -> None:
 
         self.obj = -1
+        self.fix_object = fix_object
         
         if render_gui: p.connect(p.GUI)
         else: p.connect(p.DIRECT)
@@ -25,7 +26,9 @@ class SimEnv():
         if self.obj != -1:
             p.removeBody(self.obj)
         self.obj = (self.obj) = p.loadURDF(self.model_path + "/grasping_objects/cube_small.urdf")
-        #p.changeDynamics(self.obj, -1, mass=0)
+        
+        if self.fix_object:
+            p.changeDynamics(self.obj, -1, mass=0)
 
 
         self.robot = Robot(self.obj)
@@ -45,7 +48,8 @@ class SimEnv():
 
         
         p.resetBasePositionAndOrientation(self.obj, [rand_pos[0], rand_pos[1], 0.05], [0, 0, 0, 1])
-        #p.changeDynamics(self.obj, -1, mass=0)
+        if self.fix_object:
+            p.changeDynamics(self.obj, -1, mass=0)
 
         
     def reset(self):

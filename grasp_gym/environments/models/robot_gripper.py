@@ -16,7 +16,6 @@ class Robot():
     self.gripper = self.load_robot()
     self.cube = cubeId
 
-    self.grasp_success = 0
     self.gripper_status = 0
 
   def load_robot(self):
@@ -31,16 +30,16 @@ class Robot():
     Reset the gripper to its initial position
     """
 
-    p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
-    p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
+    #p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
+    #p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
     
-    p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.2)
+    #p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.2)
     p.setJointMotorControl2(self.gripper, 3, p.POSITION_CONTROL, targetPosition=0)
     
-    #p.resetBasePositionAndOrientation(self.gripper, [0, 0, 0.2], [ 0, 0, 0, 1 ])
+    p.resetBasePositionAndOrientation(self.gripper, [0, 0, 0.2], [ 0, 0, 0, 1 ])
     p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
-    self.grasp_success = 0
+
     self.gripper_status = 0
 
   def move_robot(self, action):
@@ -65,7 +64,7 @@ class Robot():
     if action[3] > 0 and self.gripper_status == 0: 
        self.close_gripper()
     
-    elif action[3] <= 0 and self.gripper_status == 1: 
+    elif action[3] <= 0 and self.gripper_status == 1:
        self.open_gripper()
 
   def open_gripper(self):

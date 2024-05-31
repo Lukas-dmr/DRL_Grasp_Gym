@@ -10,6 +10,8 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import CheckpointCallback
 
+from networks.test_policy import CustomActorCriticPolicy, CustomLSTMFeaturesExtractor
+
 def read_hyperparameters_from_yaml(file_path=os.getcwd() + "/hyperparameters/ppo.yaml"):
     with open(file_path, 'r') as file:
         hyperparameters = yaml.safe_load(file)
@@ -42,9 +44,9 @@ class CustomCallback(BaseCallback):
         
 
 
-def test_env():
+def test_env(stage_nr=4):
 
-    env = gymnasium.make('GraspEnv-s4', render_gui=True)
+    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=True)
     env.reset()
 
     tmp = False
@@ -109,7 +111,7 @@ def train(stage_nr=4, load_agent=False, agent_name=""):
     if load_agent:
         model = PPO.load(checkpoint_dir+"/"+agent_name, env=env, **hyperparameters)
     else:
-        # Define and configure the PPO agent
+        # Define and configure the PPO agent, CustomActorCriticPolicy
         model = PPO('MlpPolicy', env, verbose=1, **hyperparameters)
 
     # Define the callback to save checkpoints during training
@@ -134,17 +136,20 @@ def main():
 
     parser = argparse.ArgumentParser(description='train, run or test agent')
     parser.add_argument('--action', choices=['train', 'run', 'test'], help='Type of action: train, run, test', default='run')
-    parser.add_argument('--stage', type=int, choices=[1, 2, 3, 4], default=4, help='Stage number (1, 2, 3, 4)')
-    parser.add_argument('--checkpoint', default='rl_model_350000_steps.zip', help='Checkpoint name')
+    parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4"], default=4, help='Stage number (1, 2, 3, 4)')
+    parser.add_argument('--checkpoint', default=None, help='Checkpoint name')
 
     args = parser.parse_args()
 
     if args.action == 'train':
-        train(stage_nr=args.stage)
+        if args.checkpoint:
+            train(stage_nr=str(args.stage), load_agent=True, agent_name=str(args.checkpoint))
+        else:
+            train(stage_nr=str(args.stage))
     elif args.action == 'run':
         run(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'checkpoints/'+str(args.checkpoint)))
     elif args.action == 'test':
-        test_env()
+        test_env(stage_nr=str(args.stage))
     else:
         print("Invalid command. Please choose 'train', 'run', or 'test'.")
 
