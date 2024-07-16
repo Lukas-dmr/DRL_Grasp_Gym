@@ -3,6 +3,7 @@ import pybullet as p
 from grasp_gym.environments.distance_obs.gym_env import RobotGraspGym
 
 class StageOneGym(RobotGraspGym):
+    
     def reward(self):
         current_distance = self.sim_env.get_distance()
         reward = -np.linalg.norm(current_distance)
@@ -86,7 +87,7 @@ class StageThreeGym(RobotGraspGym):
         if self.sim_env.robot.get_gripper_status() == 1:
             grasp_penalty = 2
 
-        reward = -np.linalg.norm(current_distance)
+        reward = -np.linalg.norm(current_distance)*grasp_penalty
         self.check_grasp_success()
         
         if self.grasp_success == 1:
@@ -132,19 +133,7 @@ class StageThreeGym(RobotGraspGym):
                     
                    
 class StageFourGym(RobotGraspGym):
-    def step(self, action):
-
-        self.sim_env.run_simulation(action)
-        self.check_grasp_success()
-
-        observation = self.get_observation()
-        reward = self.reward()
-        done = self.terminate_episode()
-
-        self.episode_ts += 1
     
-        return observation, reward, done, done, {}
-
     def reward(self):
         current_distance = self.sim_env.get_distance()
 
@@ -153,6 +142,7 @@ class StageFourGym(RobotGraspGym):
             grasp_penalty = 2
 
         reward = -np.linalg.norm(current_distance)*grasp_penalty
+        self.check_grasp_success()
         
         if self.grasp_success == 1:
             reward = 500

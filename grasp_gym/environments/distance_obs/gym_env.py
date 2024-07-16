@@ -52,6 +52,8 @@ class RobotGraspGym(gym.Env):
         
         observation = np.concatenate([distance, np.array([gripper_status], dtype=np.float32)], dtype=np.float32)
 
+        self.sim_env.get_depth_img()
+
         return observation
 
     def step(self, action):

@@ -53,7 +53,15 @@ def test_env(stage_nr=4):
     ts = 0
     
     while True:
-        # get cube position
+        action = env.action_space.sample()
+        action = [0.5,0,0,0]
+        dist = env.sim_env.get_distance()
+        if abs(dist[0]) < 0.05:
+            action = [0,0,-0.5,0]
+        observation, reward, done, _, _ = env.step(action)
+        input("stop")
+
+        """ # get cube position
         cube_pos = env.sim_env.get_object_position()
 
         # get gripper position
@@ -62,17 +70,17 @@ def test_env(stage_nr=4):
         # drive gripper to cube
         action = cube_pos - gripper_pos
 
-        """ if not tmp:
+        if not tmp:
             env.step([0, 0, 0, 1])
             tmp = True
-        else: """
+        else: 
 
         if abs(action[0]) > 0.01 or abs(action[1]) > 0.01:
            observation, reward, done, _, _ = env.step([action[0], action[1], 0, 0])
         elif abs(action[2]) > 0.001:
             observation, reward, done, _, _ = env.step([0, 0, action[2], 0])
         else: 
-           observation, reward, done, _, _ =  env.step([0, 0, 0, 1])
+           observation, reward, done, _, _ =  env.step([0, 0, 0, 1]) """
 
         if done or ts > 200:
             env.reset()
@@ -111,8 +119,8 @@ def train(stage_nr=4, load_agent=False, agent_name=""):
     if load_agent:
         model = PPO.load(checkpoint_dir+"/"+agent_name, env=env, **hyperparameters)
     else:
-        # Define and configure the PPO agent, CustomActorCriticPolicy
-        model = PPO('MlpPolicy', env, verbose=1, **hyperparameters)
+        # Define and configure the PPO agent, CustomActorCriticPolicy, MlpPolicy
+        model = PPO(CustomActorCriticPolicy, env, verbose=1, **hyperparameters)
 
     # Define the callback to save checkpoints during training
     checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=checkpoint_dir)
