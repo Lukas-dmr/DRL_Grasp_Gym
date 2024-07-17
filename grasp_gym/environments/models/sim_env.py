@@ -50,7 +50,8 @@ class SimEnv():
         undesired_max = 0.1
 
         # Generate random positions within the desired range
-        rand_pos = np.random.uniform(min_val, max_val, size=2)
+        rand_pos_x = np.random.uniform(-0.1, 0.4, size=1)
+        rand_pos_y = np.random.uniform(-0.4, 0.4, size=1)
 
         #TODO Removed
         # Reject positions falling within the forbidden intervals
@@ -58,7 +59,7 @@ class SimEnv():
         #    rand_pos = np.random.uniform(min_val, max_val, size=2)
 
         
-        p.resetBasePositionAndOrientation(self.obj, [0.4, 0, 0.05], [0, 0, 0, 1])
+        p.resetBasePositionAndOrientation(self.obj, [rand_pos_x, rand_pos_y, 0.05], [0, 0, 0, 1])
         
         if self.fix_object:
             p.changeDynamics(self.obj, -1, mass=0)
@@ -73,18 +74,7 @@ class SimEnv():
     def run_simulation(self, action):
         '''Run the simulation for 5 steps'''
 
-        tcp_pos, _ = p.getLinkState(self.robot.gripper, 4)[:2]
-        # Get ball position
-        ball_pos = self.get_object_position()
-
-        # Calculate distance between robot and ball
-        dist = tcp_pos - ball_pos
-        rot = 1
-        print(dist)
-        if abs(dist[0]) < 0.2 and abs(dist[1]) < 0.2:
-            rot = 0
-
-        self.robot.move_robot(action, rotation=rot)
+        self.robot.move_robot(action)
         for _ in range(10):
             p.stepSimulation()
             time.sleep(1./240.)

@@ -16,6 +16,7 @@ class Robot():
     self.model_path = os.getcwd() + "/grasp_gym/environments/models"
     self.gripper = self.load_robot()
     self.gripper_cam = GripperCamera(self.gripper, cube_id, render=render)
+    self.obj_id = cube_id
     
 
     self.gripper_status = 0
@@ -24,7 +25,7 @@ class Robot():
     """
     Load the gripper model into the simulation environment
     """
-    return p.loadURDF(self.model_path + "/panda_gripper/gripper_model.urdf", [0, 0, 0.5], [ 0, 0, 0, 1 ])
+    return p.loadURDF(self.model_path + "/panda_gripper/gripper_model.urdf", [0, 0, 0.4], [ 0, 0, 0, 1 ])
 
   
   def reset_robot(self):
@@ -39,13 +40,13 @@ class Robot():
     p.setJointMotorControl2(self.gripper, 3, p.POSITION_CONTROL, targetPosition=0)
     p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0)
     
-    p.resetBasePositionAndOrientation(self.gripper, [-0.5, 0, 0.4], [ 0, 0, 0, 1 ])
+    p.resetBasePositionAndOrientation(self.gripper, [-0.45, 0., 0.4], [ 0, 0, 0, 1 ])
     p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 6, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
 
     self.gripper_status = 0
 
-  def move_robot(self, action, rotation=1):
+  def move_robot(self, action):
     """
     Move the gripper to a new position
     """
@@ -64,8 +65,7 @@ class Robot():
     p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=target_position[1])
     p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=target_position[2])
 
-    # Rotate Gripper
-    p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=rotation)
+    self.rotate_gripper()
     
     if action[3] > 0 and self.gripper_status == 0: 
        self.close_gripper()
@@ -138,6 +138,19 @@ class Robot():
     """
     _, tcp_ori = p.getLinkState(self.gripper, 7)[:2]
     return np.array(tcp_ori)
+  
+  def rotate_gripper(self):
+    """
+    Change orientation if distance is small
+    """
+    cam_pos, _ = p.getLinkState(self.gripper, 3)[:2]
+    obj_pos, _ = p.getBasePositionAndOrientation(self.obj_id)
+    dist = np.linalg.norm(np.array(cam_pos) - np.array(obj_pos))
+
+    if abs(dist) < 0.5:
+      p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0)
+    else:
+      p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0.8)
 
   def get_gripper_status(self):
     """

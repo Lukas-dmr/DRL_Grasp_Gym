@@ -59,7 +59,7 @@ def test_env(stage_nr=4):
         if abs(dist[0]) < 0.05:
             action = [0,0,-0.5,0]
         observation, reward, done, _, _ = env.step(action)
-        input("stop")
+        input()
 
         """ # get cube position
         cube_pos = env.sim_env.get_object_position()

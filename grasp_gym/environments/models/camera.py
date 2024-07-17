@@ -30,7 +30,7 @@ class GripperCamera():
         """
 
        
-        cam_pos = self.get_cam_pos() + np.array([0.028,0,0.0])
+        cam_pos = self.get_cam_pos() + np.array([0.05,0,0.0])
         cam_ori = self.get_cam_ori()
         cam_pitch = -90-cam_ori[1]
 
@@ -78,47 +78,33 @@ class GripperCamera():
 
         if self.render: self.render_image(bb_depth_norm, rgb)
 
-        return depth_normalized
+        return bb_depth_norm
 
     def draw_bounding_box(self, img, seg_mask, obj_id):
-
         seg_arr = np.equal(seg_mask, obj_id)
-
-        # reshape segmented array to image
         seg_img = np.asarray(seg_arr, dtype=np.float32).reshape(self.img_height, self.img_width)
 
-        # Get Maximum and Minimum conrer points
-        min_corner = [990,990]
-        max_corner = [0,0]
+        # Get coordinates of the object in the segmentation image
+        coords = np.argwhere(seg_img > 0)
 
-        for x in range(self.img_height):
-            for y in range(self.img_width):
-                cell = seg_img[x][y]
-
-                if cell > 0 and x < min_corner[1]:
-                    min_corner[1] = x
-                if cell > 0 and x > max_corner[1]:
-                    max_corner[1] = x
-                if cell > 0 and y < min_corner[0]:
-                    min_corner[0] = y
-                if cell > 0 and y > max_corner[0]:
-                    max_corner[0] = y
-
-        if min_corner[0] != 990 and min_corner[1] != 990 and max_corner[0] != 0 and max_corner[1] != 0 and \
-            min_corner[0]-3 >= 0 and min_corner[1]-3 >= 0 and max_corner[0]+3 <= 224 and max_corner[1]+3 <= 224:
-            
-            bb_img = cv2.rectangle(img, (min_corner[0]-3,min_corner[1]-3), (max_corner[0]+3,max_corner[1]+3), 0, 2)
-            return bb_img
-        
-        else:
+        if coords.size == 0:
             return img
+
+        min_corner = coords.min(axis=0)
+        max_corner = coords.max(axis=0)
+
         
+
+        bb_img = cv2.rectangle(img, (min_corner[1] - 3, min_corner[0] - 3), 
+                                        (max_corner[1] + 3, max_corner[0] + 3), 0, 2)
+        return bb_img
+      
     def render_image(self, depth, rgb):
         """
         Render the depth and rgb images
         """
         cv2.imshow('Depth Image', depth)
-        cv2.imshow('RGB Image', rgb)
+        #cv2.imshow('RGB Image', rgb)
         cv2.waitKey(3)
 
     def get_cam_pos(self):
