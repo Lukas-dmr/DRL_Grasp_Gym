@@ -11,7 +11,7 @@ import pybullet_data
 
 class SimEnv():
 
-    def __init__(self, render_gui, fix_object=False) -> None:
+    def __init__(self, render_gui, fix_object=True) -> None:
 
         self.obj = -1
         self.fix_object = fix_object
@@ -96,7 +96,7 @@ class SimEnv():
         return distance
     
     def get_depth_img(self):
-        return self.robot.gripper_cam.get_depth_image()
+        return self.robot.gripper_cam.get_depth_image(self.robot.gripper_status)
 
     def check_obj_pos(self):
 

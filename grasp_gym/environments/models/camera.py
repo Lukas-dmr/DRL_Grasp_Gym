@@ -54,7 +54,7 @@ class GripperCamera():
 
         return projection_matrix, view_matrix
     
-    def get_depth_image(self):
+    def get_depth_image(self, gripper_status):
 
         # Get the camera matrices
         projection_matrix, view_matrix = self.compute_matrices()
@@ -67,21 +67,35 @@ class GripperCamera():
             projectionMatrix=projection_matrix
         )
 
+        # Convert rgb to grey
+        grey_img = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY)
+
         # Convert depth image to numpy array
-        depth_array = np.array(depth_image).reshape((height, width))
+        depth_array = np.array(depth_image, dtype=np.float32).reshape((height, width))
 
         # Normalize depth image
-        depth_normalized = (depth_array - np.min(depth_array)) / (np.max(depth_array) - np.min(depth_array))
+        min_depth = np.min(depth_array)
+        max_depth = np.max(depth_array)
+        range_depth = max_depth - min_depth
+
+        if range_depth > 0:
+            depth_normalized = (depth_array - min_depth) / range_depth
+        else:
+            # If range is zero, set the normalized depth to zero
+            depth_normalized = np.zeros_like(depth_array, dtype=np.float32)
 
         # Draw Bounding Box around target object
-        bb_depth_norm = self.draw_bounding_box(depth_normalized, seg_mask, 1)
+        bb_depth_norm = self.draw_bounding_box(depth_normalized, seg_mask, gripper_status)
 
-        if self.render: self.render_image(bb_depth_norm, rgb)
+        # Resize image
+        bb_depth_norm = cv2.resize(bb_depth_norm, (94, 94))
+
+        if self.render: self.render_image(bb_depth_norm, grey_img)
 
         return bb_depth_norm
 
-    def draw_bounding_box(self, img, seg_mask, obj_id):
-        seg_arr = np.equal(seg_mask, obj_id)
+    def draw_bounding_box(self, img, seg_mask, gripper_status):
+        seg_arr = np.equal(seg_mask, self.cube_id)
         seg_img = np.asarray(seg_arr, dtype=np.float32).reshape(self.img_height, self.img_width)
 
         # Get coordinates of the object in the segmentation image
@@ -93,18 +107,20 @@ class GripperCamera():
         min_corner = coords.min(axis=0)
         max_corner = coords.max(axis=0)
 
-        
+        bb_col = 0
+        if gripper_status == 1:
+            bb_col = 150
 
         bb_img = cv2.rectangle(img, (min_corner[1] - 3, min_corner[0] - 3), 
-                                        (max_corner[1] + 3, max_corner[0] + 3), 0, 2)
+                                        (max_corner[1] + 3, max_corner[0] + 3), bb_col, 2)
         return bb_img
       
-    def render_image(self, depth, rgb):
+    def render_image(self, depth, grey_img):
         """
         Render the depth and rgb images
         """
         cv2.imshow('Depth Image', depth)
-        #cv2.imshow('RGB Image', rgb)
+        #cv2.imshow('Grey Image', grey_img)
         cv2.waitKey(3)
 
     def get_cam_pos(self):

@@ -25,7 +25,7 @@ class Robot():
     """
     Load the gripper model into the simulation environment
     """
-    return p.loadURDF(self.model_path + "/panda_gripper/gripper_model.urdf", [0, 0, 0.4], [ 0, 0, 0, 1 ])
+    return p.loadURDF(self.model_path + "/panda_gripper/gripper_model.urdf", [-0.4, 0, 0.4], [ 0, 0, 0, 1 ])
 
   
   def reset_robot(self):
@@ -33,16 +33,15 @@ class Robot():
     Reset the gripper to its initial position
     """
 
-    #p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
-    #p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 0, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 1, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0)
     
-    #p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0.2)
     p.setJointMotorControl2(self.gripper, 3, p.POSITION_CONTROL, targetPosition=0)
-    p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0)
+    p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0.8)
     
-    p.resetBasePositionAndOrientation(self.gripper, [-0.45, 0., 0.4], [ 0, 0, 0, 1 ])
-    p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 6, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
+    p.setJointMotorControl2(self.gripper, 7, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
 
     self.gripper_status = 0
 
@@ -77,16 +76,16 @@ class Robot():
     """
     Open the gripper
     """
-    p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 6, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
+    p.setJointMotorControl2(self.gripper, 7, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     self.gripper_status = 0
 
   def close_gripper(self):
     """
     Close the gripper
     """
-    p.setJointMotorControl2(self.gripper, 5, p.POSITION_CONTROL, targetPosition=GRIPPER_CLOSE)
     p.setJointMotorControl2(self.gripper, 6, p.POSITION_CONTROL, targetPosition=GRIPPER_CLOSE)
+    p.setJointMotorControl2(self.gripper, 7, p.POSITION_CONTROL, targetPosition=GRIPPER_CLOSE)
     self.gripper_status = 1
 
   def keep_boundaries(self, action):

@@ -51,17 +51,8 @@ def test_env(stage_nr=4):
 
     tmp = False
     ts = 0
-    
     while True:
-        action = env.action_space.sample()
-        action = [0.5,0,0,0]
-        dist = env.sim_env.get_distance()
-        if abs(dist[0]) < 0.05:
-            action = [0,0,-0.5,0]
-        observation, reward, done, _, _ = env.step(action)
-        input()
-
-        """ # get cube position
+        # get cube position
         cube_pos = env.sim_env.get_object_position()
 
         # get gripper position
@@ -70,17 +61,12 @@ def test_env(stage_nr=4):
         # drive gripper to cube
         action = cube_pos - gripper_pos
 
-        if not tmp:
-            env.step([0, 0, 0, 1])
-            tmp = True
-        else: 
-
         if abs(action[0]) > 0.01 or abs(action[1]) > 0.01:
            observation, reward, done, _, _ = env.step([action[0], action[1], 0, 0])
         elif abs(action[2]) > 0.001:
             observation, reward, done, _, _ = env.step([0, 0, action[2], 0])
         else: 
-           observation, reward, done, _, _ =  env.step([0, 0, 0, 1]) """
+           observation, reward, done, _, _ =  env.step([0, 0, 0, 1]) 
 
         if done or ts > 200:
             env.reset()
@@ -120,7 +106,7 @@ def train(stage_nr=4, load_agent=False, agent_name=""):
         model = PPO.load(checkpoint_dir+"/"+agent_name, env=env, **hyperparameters)
     else:
         # Define and configure the PPO agent, CustomActorCriticPolicy, MlpPolicy
-        model = PPO(CustomActorCriticPolicy, env, verbose=1, **hyperparameters)
+        model = PPO("MultiInputPolicy", env, verbose=1, **hyperparameters)
 
     # Define the callback to save checkpoints during training
     checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=checkpoint_dir)
@@ -144,7 +130,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='train, run or test agent')
     parser.add_argument('--action', choices=['train', 'run', 'test'], help='Type of action: train, run, test', default='run')
-    parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4"], default=4, help='Stage number (1, 2, 3, 4)')
+    parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4", "t"], default=4, help='Stage number (1, 2, 3, 4)')
     parser.add_argument('--checkpoint', default=None, help='Checkpoint name')
 
     args = parser.parse_args()

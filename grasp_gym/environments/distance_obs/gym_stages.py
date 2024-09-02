@@ -1,6 +1,95 @@
 import numpy as np
 import pybullet as p
+from gymnasium import spaces
+from grasp_gym.environments.models.sim_env import SimEnv
 from grasp_gym.environments.distance_obs.gym_env import RobotGraspGym
+
+class TestVidGym(RobotGraspGym):
+
+    def __init__(self, render_gui=False):
+        
+        self.sim_env = SimEnv(render_gui)
+        self.robot = self.sim_env.robot
+
+        self.max_ts = 1000
+        self.episode_ts = 0
+
+        self.success_threshold = 0.03
+        self.grasp_success = 0
+
+        self.action_space, self.observation_space = self.define_spaces()
+
+    def define_spaces(self):
+
+        # Define continuous action space for x, y, and z
+        action_space = spaces.Box(low=np.array([-1.0, -1.0]), 
+                                              high=np.array([1.0, 1.0]), 
+                                              dtype=np.float32)
+
+        # Define continuous observation space for distance in x, y, and z
+        #observation_space = spaces.Box(low=np.array([-np.inf, -np.inf]), 
+        #                                        high=np.array([np.inf, np.inf]), 
+        #                                        dtype=np.float32)
+        
+
+        #observation_space = spaces.Box(low=0.0, high=1.0, shape=(94, 94), dtype=np.float32)
+
+        observation_space = spaces.Dict({
+            'depth_image': spaces.Box(low=0, high=255, shape=(94,94), dtype=np.float32),
+            'position': spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32)
+        })
+        
+        return action_space, observation_space
+    
+    def get_observation(self):
+
+        observation = {}
+        observation['position'] = np.array(self.sim_env.get_distance()[:2], dtype=np.float32)
+        observation['depth_image'] = np.array(self.sim_env.get_depth_img(), dtype=np.float32) 
+
+        return observation
+    
+    def step(self, action):
+
+        action = np.array([action[0], action[1], 0.0, 0.0])
+        
+        self.sim_env.run_simulation(action)
+
+        observation = self.get_observation()
+        reward = self.reward()
+        done = self.terminate_episode()
+
+        self.episode_ts += 1
+    
+        return observation, reward, done, done, {}
+
+    def reward(self):
+        current_distance = self.sim_env.get_distance()
+        reward = -np.linalg.norm(current_distance)
+        if self.check_reach_success():
+            reward = 500
+        return reward
+    
+    def terminate_episode(self):
+        if self.episode_ts >= self.max_ts:
+            return True
+        if self.check_reach_success():
+            return True
+        return False
+    
+    def check_reach_success(self):
+
+        distance = self.sim_env.get_distance()
+
+        success = True
+
+        x_dist = abs(distance[0])
+        y_dist = abs(distance[1])
+
+        if x_dist > self.success_threshold or y_dist > self.success_threshold:
+            success = False
+
+        return success
 
 class StageOneGym(RobotGraspGym):
     

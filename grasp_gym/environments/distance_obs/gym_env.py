@@ -31,6 +31,9 @@ class RobotGraspGym(gym.Env):
         observation_space = spaces.Box(low=np.array([-np.inf, -np.inf, -np.inf, -np.inf]), 
                                                 high=np.array([np.inf, np.inf, np.inf, np.inf]), 
                                                 dtype=np.float32)
+        
+
+        observation_space = spaces.Box(low=0.0, high=1.0, shape=(94, 94), dtype=np.float32)
 
         return action_space, observation_space
 
@@ -46,13 +49,13 @@ class RobotGraspGym(gym.Env):
     def get_observation(self):
 
         # Calculate distance between robot and ball
-        distance = self.sim_env.get_distance()
+        #distance = self.sim_env.get_distance()
 
-        gripper_status = self.sim_env.robot.get_gripper_status()
+        #gripper_status = self.sim_env.robot.get_gripper_status()
         
-        observation = np.concatenate([distance, np.array([gripper_status], dtype=np.float32)], dtype=np.float32)
+        #observation = np.concatenate([distance, np.array([gripper_status], dtype=np.float32)], dtype=np.float32)
 
-        self.sim_env.get_depth_img()
+        observation = self.sim_env.get_depth_img()
 
         return observation
 
