@@ -44,9 +44,9 @@ class TestVidGym(RobotGraspGym):
     def get_observation(self):
 
         observation = {}
-        observation['position'] = np.array(self.sim_env.get_distance()[:2], dtype=np.float32)
         observation['depth_image'] = np.array(self.sim_env.get_depth_img(), dtype=np.float32) 
-
+        observation['position'] = np.array(self.sim_env.get_distance()[:2], dtype=np.float32)
+        
         return observation
     
     def step(self, action):

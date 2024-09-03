@@ -1,9 +1,9 @@
-import gym
+import gymnasium
 import numpy as np
 from gymnasium import spaces
 from grasp_gym.environments.models.sim_env import SimEnv
 
-class RobotGraspGym(gym.Env):
+class RobotGraspGym(gymnasium.Env):
 
     '''Position control can change the position, but not the orientation. Also it decides when to grasp by itself'''
 
