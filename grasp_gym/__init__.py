@@ -1,6 +1,6 @@
 from gymnasium.envs.registration import register
-from grasp_gym.environments.distance_obs.gym_stages import StageOneGym, StageTwoGym, StageThreeGym, StageFourGym, TestVidGym
-
+from grasp_gym.environments.gym_env_stages import StageOneGym, StageTwoGym, StageThreeGym, StageFourGym
+from grasp_gym.environments.gym_env import RobotGraspGym
 
 
 register(id='GraspEnv-s1',
@@ -17,8 +17,4 @@ register(id='GraspEnv-s3',
 
 register(id='GraspEnv-s4',
          entry_point= StageFourGym,
-)
-
-register(id='GraspEnv-st',
-         entry_point= TestVidGym,
 )

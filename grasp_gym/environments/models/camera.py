@@ -3,6 +3,9 @@ import numpy as np
 import pybullet as p
 
 class GripperCamera():
+    """
+    Class to handle the camera of the robot gripper
+    """
 
     def __init__(self, gripper, cube_id, render=False) -> None:
         self.gripper = gripper
@@ -12,7 +15,11 @@ class GripperCamera():
         self.img_width = 224
         self.img_height = 224
 
-    def visualize_camera(self, cam_pos, cam_ori):
+    def visualize_camera(self, cam_pos):
+        """
+        Args:
+            cam_pos (list): The position of the camera
+        """
 
         pos = [cam_pos[0]+0.05, cam_pos[1], cam_pos[2]+0.05]
 
@@ -27,9 +34,12 @@ class GripperCamera():
     def compute_matrices(self):
         """
         Compute the camera view and projection matrices
+
+        Returns:
+            projection_matrix (list): The projection matrix of the camera
+            view_matrix (list): The view matrix of the camera
         """
 
-       
         cam_pos = self.get_cam_pos() + np.array([0.05,0,0.0])
         cam_ori = self.get_cam_ori()
         cam_pitch = -90-cam_ori[1]
@@ -55,6 +65,16 @@ class GripperCamera():
         return projection_matrix, view_matrix
     
     def get_depth_image(self, gripper_status):
+        """
+        Get the depth image from the camera with bounding box around the target object
+
+        Args:
+            gripper_status (int): The status of the gripper (0: closed, 1: open)
+        
+        Returns:
+            bb_depth_norm (np.array): The normalized depth image with bounding box
+        """
+
 
         # Get the camera matrices
         projection_matrix, view_matrix = self.compute_matrices()
@@ -95,6 +115,17 @@ class GripperCamera():
         return bb_depth_norm
 
     def draw_bounding_box(self, img, seg_mask, gripper_status):
+        """
+        Draw bounding box around the target object in the depth image
+
+        Args:
+            img (np.array): The depth image
+            seg_mask (np.array): The segmentation mask of the target object
+            gripper_status (int): The status of the gripper (0: closed, 1: open)
+
+        Returns:
+            bb_img (np.array): The depth image with bounding box around the target object
+        """
         seg_arr = np.equal(seg_mask, self.cube_id)
         seg_img = np.asarray(seg_arr, dtype=np.float32).reshape(self.img_height, self.img_width)
 
@@ -115,24 +146,26 @@ class GripperCamera():
                                         (max_corner[1] + 3, max_corner[0] + 3), bb_col, 2)
         return bb_img
       
-    def render_image(self, depth, grey_img):
+    def render_image(self, depth):
         """
-        Render the depth and rgb images
+        Args:
+            depth (np.array): The depth image to render
         """
         cv2.imshow('Depth Image', depth)
-        #cv2.imshow('Grey Image', grey_img)
         cv2.waitKey(3)
 
     def get_cam_pos(self):
         """
-        Get the position of the camera
+        Returns:
+            cam_pos (np.array): The position of the camera in world coordinates
         """
         cam_pos, _ = p.getLinkState(self.gripper, 9)[:2]
         return np.array(cam_pos)
     
     def get_cam_ori(self):
         """
-        Get the orientation of the camera in euler angles (deg)
+        Returns:
+            cam_ori (np.array): The orientation of the camera in euler angles
         """
 
         _, cam_ori = p.getLinkState(self.gripper, 9)[:2]

@@ -1,50 +1,83 @@
 import os
-import sys
-import yaml
 import argparse
 import gymnasium
 import grasp_gym
-import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.callbacks import CheckpointCallback
+from grasp_gym.helper_scripts.custom_callbacks import CustomCallback
+from grasp_gym.helper_scripts.helper_funtions import read_hyperparameters_from_yaml
+from networks.lstm_policy import CustomActorCriticPolicy, CustomLSTMFeaturesExtractor
 
-from networks.test_policy import CustomActorCriticPolicy, CustomLSTMFeaturesExtractor
+def run_env(stage_nr=4, path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
+    """
+    Run the trained agent in the environment.
 
-def read_hyperparameters_from_yaml(file_path=os.getcwd() + "/hyperparameters/ppo.yaml"):
-    with open(file_path, 'r') as file:
-        hyperparameters = yaml.safe_load(file)
-    return hyperparameters
+    Args:
+        stage_nr (int): The stage number of the environment (1-4).
+        path (str): The path to the trained agent model.
+    """
 
-class CustomCallback(BaseCallback):
-    def __init__(self, verbose=2):
-        super().__init__(verbose)
-        self.cumulative_rewards_single_episode = []  # List to store cumulative rewards for each episode
-        self.cumulative_rewards_all_episodes = []  # List to store cumulative rewards for all episodes
+    # Create and wrap the custom Gym environment
+    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=True)
+    env = DummyVecEnv([lambda: env])
 
-    def _on_step(self):
+    model = PPO.load(path)
 
-        self.cumulative_rewards_single_episode.append(self.locals['rewards'][0])  # Append the rewards for the current episode
+    obs = env.reset()
 
-        # Check if an episode has completed
-        if self.locals['dones'].any():
-            # Calculate the cumulative reward for the current episode
-            cumulative_reward = np.mean(self.cumulative_rewards_single_episode)
-            self.cumulative_rewards_all_episodes.append(cumulative_reward)
-            self.cumulative_rewards_single_episode = []  # Reset the list for the next episode
+    while True:
+        action, _ = model.predict(obs)
+        obs, _, _, _ = env.step(action)
 
-        # printer after 5000 steps
-        if self.num_timesteps % 5000 == 0:
-            print(f"Step: {self.num_timesteps}, Mean Reward: {np.mean(self.cumulative_rewards_all_episodes)}")
-            self.cumulative_rewards_all_episodes = []
+def train_env(stage_nr=4, load_agent=False, agent_name=""):
+    """
+    Train the agent in the environment.
 
-        return True
+    Args:
+        stage_nr (int): The stage number of the environment (1-4).
+        load_agent (bool): Whether to load a previously trained agent.
+        agent_name (str): The name of the agent to load.
+    """
 
-        
+    # Create the directory if it does not exist
+    checkpoint_dir = os.getcwd() + "/checkpoints"
+    os.makedirs(checkpoint_dir, exist_ok=True)
 
+    # Create and wrap the custom Gym environment
+    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=False)
+    env = DummyVecEnv([lambda: env])
+
+    hyperparameters = read_hyperparameters_from_yaml()
+
+    if load_agent:
+        model = PPO.load(checkpoint_dir+"/"+agent_name, env=env, **hyperparameters)
+    else:
+        # Define and configure the PPO agent, CustomActorCriticPolicy, MlpPolicy
+        model = PPO("MlpPolicy", env, verbose=1, **hyperparameters)
+
+    # Define the callback to save checkpoints during training
+    checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=checkpoint_dir)
+
+     # Define a custom callback to track progress
+    custom_callback = CustomCallback(verbose=2)
+
+    # Train the agent with PPO
+    model.learn(total_timesteps=int(1e6), callback=[checkpoint_callback, custom_callback], progress_bar=True)
+
+    # Save the final trained model
+    model.save("final_model")
+
+    # Close the environment
+    env.close()
 
 def test_env(stage_nr=4):
+    """
+    Test the environment for debugging purposes.
+
+    Args:
+        stage_nr (int): The stage number of the environment (1-4).
+    """
 
     env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=True)
     env.reset()
@@ -74,74 +107,25 @@ def test_env(stage_nr=4):
 
         ts += 1
 
-def run(stage_nr=4, path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
-
-    # Create and wrap the custom Gym environment
-    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=True)
-    env = DummyVecEnv([lambda: env])
-
-    model = PPO.load(path)
-
-    obs = env.reset()
-    done = False
-
-    while True:
-        action, _states = model.predict(obs)
-        obs, rewards, done, info = env.step(action)
-
-        
-def train(stage_nr=4, load_agent=False, agent_name=""):
-
-    # Create the directory if it does not exist
-    checkpoint_dir = os.getcwd() + "/checkpoints"
-    os.makedirs(checkpoint_dir, exist_ok=True)
-
-    # Create and wrap the custom Gym environment
-    env = gymnasium.make('GraspEnv-s'+stage_nr, render_gui=False)
-    env = DummyVecEnv([lambda: env])
-
-    hyperparameters = read_hyperparameters_from_yaml()
-
-    if load_agent:
-        model = PPO.load(checkpoint_dir+"/"+agent_name, env=env, **hyperparameters)
-    else:
-        # Define and configure the PPO agent, CustomActorCriticPolicy, MlpPolicy
-        model = PPO("MultiInputPolicy", env, verbose=1, **hyperparameters)
-
-    # Define the callback to save checkpoints during training
-    checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=checkpoint_dir)
-
-     # Define a custom callback to track progress
-    custom_callback = CustomCallback(verbose=2)
-
-    # Train the agent with PPO
-    model.learn(total_timesteps=int(1e6), callback=[checkpoint_callback, custom_callback], progress_bar=True)
-
-    # Save the final trained model
-    model.save("final_model")
-
-    # Optionally, load the final trained model later
-    # loaded_model = PPO.load("final_model")
-
-    # Close the environment
-    env.close()
-
 def main():
 
     parser = argparse.ArgumentParser(description='train, run or test agent')
+    # Choose the action to perform (train, run, test)
     parser.add_argument('--action', choices=['train', 'run', 'test'], help='Type of action: train, run, test', default='run')
+    # Choose the stage number (1, 2, 3, 4)
     parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4", "t"], default=4, help='Stage number (1, 2, 3, 4)')
+    # Choose the checkpoint to load
     parser.add_argument('--checkpoint', default=None, help='Checkpoint name')
 
     args = parser.parse_args()
 
     if args.action == 'train':
         if args.checkpoint:
-            train(stage_nr=str(args.stage), load_agent=True, agent_name=str(args.checkpoint))
+            train_env(stage_nr=str(args.stage), load_agent=True, agent_name=str(args.checkpoint))
         else:
-            train(stage_nr=str(args.stage))
+            train_env(stage_nr=str(args.stage))
     elif args.action == 'run':
-        run(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'checkpoints/'+str(args.checkpoint)))
+        run_env(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'checkpoints/'+str(args.checkpoint)))
     elif args.action == 'test':
         test_env(stage_nr=str(args.stage))
     else:

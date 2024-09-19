@@ -9,16 +9,20 @@ GRIPPER_CLOSE = 0
 
 class Robot():
   """
-  Class to load and control a 3-finger-gripper without a roboter
+  Class to load and control a 2-finger-gripper
   """
 
   def __init__(self, cube_id, render=False):
+    """
+    Args:
+        cube_id (int): The ID of the object in the simulation
+        render (bool): Whether to render the GUI or not
+    """
     self.model_path = os.getcwd() + "/grasp_gym/environments/models"
     self.gripper = self.load_robot()
     self.gripper_cam = GripperCamera(self.gripper, cube_id, render=render)
     self.obj_id = cube_id
-    
-
+    self.camera_angle = 0.0
     self.gripper_status = 0
 
   def load_robot(self):
@@ -38,7 +42,7 @@ class Robot():
     p.setJointMotorControl2(self.gripper, 2, p.POSITION_CONTROL, targetPosition=0)
     
     p.setJointMotorControl2(self.gripper, 3, p.POSITION_CONTROL, targetPosition=0)
-    p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0.8)
+    p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=self.camera_angle)
     
     p.setJointMotorControl2(self.gripper, 6, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
     p.setJointMotorControl2(self.gripper, 7, p.POSITION_CONTROL, targetPosition=GRIPPER_OPEN)
@@ -47,7 +51,7 @@ class Robot():
 
   def move_robot(self, action):
     """
-    Move the gripper to a new position
+    Move the gripper to a new target position
     """
     # Scale the action to control the gripper's movement
     scaled_action = np.array(action[:3]) * 0.1
@@ -91,13 +95,15 @@ class Robot():
   def keep_boundaries(self, action):
     """
     Check if the gripper is moving within the valid range, if not adjust action
+
+    Args:
+        action (np.array): The action to be checked
+
+    Returns:
+        action (np.array): The adjusted action
     """
     current_position = self.get_tcp_position()
     target_position = current_position + action
-
-    """ print("current ", current_position)
-    print("action ", action[:3])
-    print("target ", target_position) """
     
     # Check if the target position is within the valid range
     valid_range = [[-0.5, 0.5], [-0.5, 0.5], [0.02, 0.5]]
@@ -123,7 +129,7 @@ class Robot():
 
   def get_robot_position(self):
     """
-    Get the positions of joints 1, 2, and 3
+    Get the positions of joints x, y, and z
     """
     joint_positions = []
     for joint_index in [0, 1, 2]:
@@ -149,11 +155,12 @@ class Robot():
     if abs(dist) < 0.5:
       p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0)
     else:
-      p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=0.8)
+      p.setJointMotorControl2(self.gripper, 4, p.POSITION_CONTROL, targetPosition=self.camera_angle)
 
   def get_gripper_status(self):
     """
-    Get the status of the gripper
+    Returns:
+        gripper_status (int): The status of the gripper (0: closed, 1: open)
     """
     return self.gripper_status
   
