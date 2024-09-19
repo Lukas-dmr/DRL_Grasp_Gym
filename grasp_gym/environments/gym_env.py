@@ -55,6 +55,7 @@ class RobotGraspGym(gymnasium.Env):
         self.grasp_success = 0
         self.sim_env.reset()
         observations = self.get_observation()
+        input()
         return observations, {}
         
     def get_observation(self):
