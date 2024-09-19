@@ -9,7 +9,7 @@ from grasp_gym.helper_scripts.custom_callbacks import CustomCallback
 from grasp_gym.helper_scripts.helper_funtions import read_hyperparameters_from_yaml
 from networks.lstm_policy import CustomActorCriticPolicy, CustomLSTMFeaturesExtractor
 
-def run_env(stage_nr=4, path=os.getcwd() + "/checkpoints/rl_model_60000_steps.zip"):
+def run_env(stage_nr=4, path=os.getcwd() + "/trained_agents/mlp_agent.zip"):
     """
     Run the trained agent in the environment.
 
@@ -125,7 +125,7 @@ def main():
         else:
             train_env(stage_nr=str(args.stage))
     elif args.action == 'run':
-        run_env(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'checkpoints/'+str(args.checkpoint)))
+        run_env(stage_nr=str(args.stage), path=os.path.join(os.getcwd(), 'trained_agents/'+str(args.checkpoint)))
     elif args.action == 'test':
         test_env(stage_nr=str(args.stage))
     else:
