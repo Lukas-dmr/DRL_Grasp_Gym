@@ -9,7 +9,7 @@ from grasp_gym.helper_scripts.custom_callbacks import CustomCallback
 from grasp_gym.helper_scripts.helper_funtions import read_hyperparameters_from_yaml
 from networks.lstm_policy import CustomActorCriticPolicy, CustomLSTMFeaturesExtractor
 
-def run_env(stage_nr=4, path=os.getcwd() + "/trained_agents/mlp_agent.zip"):
+def run_env(stage_nr=3, path=os.getcwd() + "/trained_agents/mlp_agent.zip"):
     """
     Run the trained agent in the environment.
 
@@ -113,9 +113,9 @@ def main():
     # Choose the action to perform (train, run, test)
     parser.add_argument('--action', choices=['train', 'run', 'test'], help='Type of action: train, run, test', default='run')
     # Choose the stage number (1, 2, 3, 4)
-    parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4", "t"], default=4, help='Stage number (1, 2, 3, 4)')
+    parser.add_argument('--stage', type=str, choices=["1", "2", "3", "4", "t"], default=3, help='Stage number (1, 2, 3, 4)')
     # Choose the checkpoint to load
-    parser.add_argument('--checkpoint', default=None, help='Checkpoint name')
+    parser.add_argument('--checkpoint', default="mlp_agent.zip", help='Checkpoint name')
 
     args = parser.parse_args()
 
