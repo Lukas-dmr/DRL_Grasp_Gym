@@ -4,3 +4,7 @@ This project demonstrates a Deep Reinforcement Learning (DRL) agent trained to g
 
 The agent learns to control a robotic gripper in a simulation and performs grasping tasks utilizing the PPO algorithm. 
 The project is designed to showcase the capabilities of RL in solving object manipulation challenges and is ideal for educational purposes or as a starting point for more advanced robotic manipulation tasks.
+
+<div align="center">
+  <img src="assets/demo.gif" width="200" />
+</div>
