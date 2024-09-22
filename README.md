@@ -12,10 +12,7 @@ The project is designed to showcase the capabilities of RL in solving object man
 ### How to Run the RL Grasp Project
 
 
-1. Build the Docker image
-```bash
-docker build -t rl_grasp_gym .
-```
+1. Build the Docker image: ```bash docker build -t rl_grasp_gym . ```
 
 2. Run the Docker container
 ```bash
