@@ -8,3 +8,22 @@ The project is designed to showcase the capabilities of RL in solving object man
 <div align="center">
   <img src="assets/demo.gif" width="200" />
 </div>
+
+### How to Run the RL Grasp Project
+
+```bash
+# Build the Docker image
+docker build -t rl_grasp_gym .
+
+# Run the Docker container
+docker run -it --rm rl_grasp_gym
+
+# Inside the Docker container, activate the Conda environment
+conda activate grasp_gym
+
+# Run the training script
+python train.py
+
+# Exit the Docker container
+exit
+
