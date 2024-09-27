@@ -6,7 +6,7 @@ The agent learns to control a robotic gripper in a simulation and performs grasp
 The project is designed as a simple demonstration which is ideal for educational purposes or as a starting point for more advanced robotic manipulation tasks.
 
 <div align="center">
-  <img src="assets/demo.gif" width="200" />
+  <img src="assets/demo.gif" width="500" height="300" />
 </div>
 
 ### How to Run the RL Grasp Project
